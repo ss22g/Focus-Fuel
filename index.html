@@ -1,0 +1,1298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Focus Fuel: Student Study Sprint</title>
+    <meta name="theme-color" content="##000000">
+    <!-- Load Tailwind CSS CDN --><script src="https://cdn.tailwindcss.com"></script>
+    <!-- Load Google Material Symbols Font --><link href="https://fonts.googleapis.com/icon?family=Material+Symbols+Outlined" rel="stylesheet">
+    <!-- Use Inter font family --><style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+            transition: background-color 0.5s, background-image 0.5s;
+            /* UPDATED: Soft Blue Gradient Background for comfort and motivation */
+            background: linear-gradient(135deg, #f0f8ff 0%, #dbeafe 100%);
+            /* Ensure the body itself takes up the whole screen without extra padding */
+            height: 100vh;
+            margin: 0;
+            padding: 0;
+            overflow: hidden; /* Prevent bounce/scroll on mobile */
+        }
+        /* Custom Scrollbar Styles for WebKit Browsers (Chrome, Safari, Edge) */
+        main::-webkit-scrollbar {
+            width: 8px;
+        }
+        main::-webkit-scrollbar-thumb {
+            background-color: #a0a0a0; /* Grey handle */
+            border-radius: 10px;
+        }
+        main::-webkit-scrollbar-track {
+            background-color: #e0e0e0; /* Light grey track */
+        }
+
+        /* Custom PWA App Shell Styling */
+        .app-shell {
+            height: 100vh;
+            width: 100%; /* Take full width on mobile */
+            margin: 0 auto;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            border-radius: 0; /* Remove border-radius on mobile view for full screen feel */
+            background-color: transparent; /* Allows body gradient to show */
+        }
+        /* Apply proper desktop sizing for tablets/laptops */
+        @media (min-width: 640px) {
+            .app-shell {
+                border-radius: 20px;
+                height: 95vh; /* Fixed height for centered window effect */
+                max-width: 900px; /* Expanded max width for better desktop/tablet usage */
+                background-color: #F8F9FA; /* App shell content container is light gray */
+            }
+        }
+        /* When in full screen, hide the app shell border/margin logic */
+        :fullscreen {
+            width: 100vw;
+            height: 100vh;
+            max-width: 100vw;
+            border-radius: 0;
+            margin: 0;
+        }
+
+        /* Overlay for image readability */
+        .focus-bg-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.4); /* Dark overlay */
+            z-index: 10;
+            display: none; /* Only show when image is active */
+            transition: opacity 0.5s;
+        }
+
+        /* Responsive Input Styling */
+        #goal-input, #recap-input {
+            font-size: 1.25rem;
+            min-height: 8rem;
+            line-height: 1.5;
+        }
+        @media (min-width: 640px) {
+            #goal-input, #recap-input {
+                font-size: 1.5rem;
+                min-height: 10rem;
+            }
+        }
+
+        /* Timer Text Styling */
+        #timer-display {
+            font-size: 4rem;
+            font-weight: 800;
+        }
+        @media (min-width: 640px) {
+             #timer-display {
+                font-size: 6rem; /* Increased size for impact on large screens */
+            }
+        }
+        /* Custom tab styling */
+        #tab-signin.active, #tab-signup.active {
+            color: white;
+            background-color: #4C51BF; /* Indigo for selected tab */
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        }
+        #tab-signin:not(.active), #tab-signup:not(.active) {
+            color: #4C51BF;
+            background-color: transparent;
+        }
+        /* Notification Reminder Banner */
+        #notification-reminder {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            padding: 10px;
+            background-color: #FBBF24; /* Amber-400 */
+            color: #92400E; /* Amber-800 */
+            text-align: center;
+            font-weight: bold;
+            z-index: 50;
+        }
+    </style>
+    <!-- PWA Manifest --><link rel="manifest" id="manifest" href="data:application/json;base64,eyJpY29ucyI6IFt7InNyYyI6ICJodHRwczovL3plZHVzLnRpbWVzY2FsZWkuZGV2L2Nkbi9wbGFjZWhvbGRlci9mcGExOTJ4MTkyLmpwZyIsInNpemVzIjogIjE5MngxOTIiLCJ0eXBlIjogImltYWdlL3BuZyJ9LCB7InNyYyI6ICJodHRwczovL3plZHVzLnRpbWVzY2FsZWkuZGV2L2Nkbi9wbGFjZWhvbGRlci9mcGGE1MTJ4NTEyLmpwZyIsInNpemVzIjogIjUxMng1MTIiLCJ0eXBlIjogImltYWdlL3BuZyIgfV0sImRlZmF1bHRfbG9jYWxlIjogImVuLVVTIiwic3RhcnRfdXJsIjogIi4vIiwiaGVpZ2h0IjogIjkwMHBoIiwiZGlzcGxheSI6ICJzdGFuZGFsb25lIiwibmFtZSI6ICJGb2N1cyBGdWVsIiwiZGlkIjogImNvbS5mb2N1c2Z1ZWwuYXBwIiwic2hvcnRfbmFtZSI6ICJGb2N1cyBGdWVsIiwiZHRoZW1lX2NvbG9yIjogIjQ1NDA0NCIsImJhY2tncm91bmRfY29sb3IiOiAiI2ZmZmZmZiJ9">
+    <link rel="icon" href="./favicon.ico">
+</head>
+<body class="p-0 sm:p-4"> 
+    <!-- REMOVED p-0 from here as it's already in the body style, but ensured 'p-0 sm:p-4' in the class attribute for better control on the shell positioning--><!-- Application Shell (Mobile-like Container) --><!-- The margin: 0 auto in CSS centers it on large screens --><div id="app-shell" class="app-shell bg-white">
+
+        <!-- Focus Background Overlay (For Random Images) --><div id="focus-bg-overlay" class="focus-bg-overlay transition-opacity duration-500"></div>
+
+        <!-- Header --><!-- Modified to be white/light for the login view look --><header id="app-header" class="p-4 bg-white border-b border-gray-200 flex justify-between items-center z-20">
+            <!-- Customized app title color for better branding (Only visible when logged out, overridden when logged in) --><div id="auth-logo" class="flex items-center space-x-2">
+                <!-- SVG Fill is black and class color removed --><svg id="logo-icon" fill="#000000" viewBox="0 0 24 24" width="24" height="24" xmlns="http://www.w3.org/2000/svg" class="transform -rotate-45">
+                    <path d="M21.72 13.91l-1.42 2.47c-.24.41-.75.56-1.16.32l-1.92-1.1c-.41-.24-.92-.09-1.16.32l-1.42 2.47c-.24.41-.75.56-1.16.32l-1.92-1.1c-.41-.24-.92-.09-1.16.32l-1.42 2.47c-.24.41-.75.56-1.16.32l-1.92-1.1c-.41-.24-.92-.09-1.16.32L2.28 21.6c-.41.24-.92.09-1.16-.32l-.46-.8c-.24-.41-.09-.92.32-1.16l1.92-1.1c.41-.24.56-.75.32-1.16l-1.42-2.47c-.24-.41-.09-.92.32-1.16l1.92-1.1c.41-.24.56-.75.32-1.16l-1.42-2.47c-.24-.41-.09-.92.32-1.16l1.92-1.1c.41-.24.56-.75.32-1.16l-1.42-2.47c-.24-.41-.09-.92.32-1.16l.46-.8c.24-.41.75-.56 1.16-.32l1.92 1.1c.41.24.92.09 1.16-.32l1.42-2.47c.24-.41.75-.56 1.16-.32l1.92 1.1c.41.24.92.09 1.16-.32l1.42-2.47c.24-.41.75-.56 1.16-.32l1.92 1.1c.41.24.92.09 1.16-.32l1.42-2.47c.24-.41.75-.56 1.16-.32l.46.8c.24.41.09.92-.32 1.16l-1.92 1.1c-.41.24-.56.75-.32 1.16l1.42 2.47c.24.41.09.92-.32 1.16l-1.92 1.1c-.41.24-.56.75-.32 1.16l1.42 2.47c.24.41.09.92-.32 1.16z"/>
+                </svg>
+                <!-- FIXED: Initial color set to black via inline style for maximum persistence --><h1 id="app-title" class="text-xl font-bold transition-colors duration-300" style="color: #000000;">Focus Fuel</h1>
+            </div>
+            <div id="nav-buttons" class="flex space-x-2">
+                <!-- Buttons change based on view --></div>
+        </header>
+
+        <!-- Main Content Views --><!-- flex-grow handles vertical space. overflow-y-auto ensures scrolling if content exceeds height --><main class="flex-grow p-4 overflow-y-auto relative z-10">
+            
+            <!-- Notification Reminder (Shown briefly when session starts) -->
+            <div id="notification-reminder" class="hidden">
+                🔔 Don't forget to manually silence your phone/desktop notifications for maximum focus!
+            </div>
+
+            <!-- 1. Login/Register View (REDESIGNED) --><div id="view-auth" class="view w-full h-full flex flex-col items-center justify-start space-y-6 pt-8 md:pt-16">
+                <!-- Header Text --><h2 class="text-3xl font-extrabold text-gray-900">Welcome Back</h2>
+                <p class="text-sm text-gray-500">Welcome Back, Please enter Your details</p>
+                
+                <div class="w-full max-w-sm px-4">
+                    <!-- Tabbed Navigation (Sign In / Sign Up) --><div id="auth-toggle" class="flex p-1 bg-gray-100 rounded-xl shadow-inner mb-6">
+                        <button id="tab-signin" class="flex-1 p-2 font-semibold text-center rounded-lg transition-all active">Sign In</button>
+                        <button id="tab-signup" class="flex-1 p-2 font-semibold text-center rounded-lg transition-all">Sign Up</button>
+                    </div>
+
+                    <!-- Authentication Card (Inputs) --><div class="bg-white p-6 rounded-2xl shadow-xl space-y-4">
+                        
+                        <!-- Input Fields with custom placeholders to match the visual feel --><!-- Username Input --><div class="relative">
+                            <input type="text" id="auth-username" placeholder="Enter username or email" 
+                                class="w-full p-4 pl-4 border border-gray-200 rounded-xl focus:border-indigo-400 focus:ring-1 focus:ring-indigo-400 transition"
+                            >
+                            <label for="auth-username" class="absolute left-4 top-1 text-xs text-gray-400">Username</label>
+                            <!-- Note: Added visual icons and checkmarks were removed for simplicity and compatibility --></div>
+                        
+                        <!-- Password Input --><div class="relative">
+                            <input type="password" id="auth-password" placeholder="Enter your password" 
+                                class="w-full p-4 pl-4 border border-gray-200 rounded-xl focus:border-indigo-400 focus:ring-1 focus:ring-indigo-400 transition"
+                            >
+                            <label for="auth-password" class="absolute left-4 top-1 text-xs text-gray-400">Password</label>
+                        </div>
+                        
+                    </div>
+                    
+                    <p id="auth-message" class="text-center mt-4 text-sm text-red-600"></p>
+                    
+                    <!-- Single Action Button (Blue/Indigo, performing Login or Register based on tab) --><button id="btn-continue" class="w-full mt-6 p-4 bg-indigo-600 text-white font-extrabold text-lg rounded-xl hover:bg-indigo-700 transition shadow-lg transform hover:scale-[1.01]">
+                        Continue
+                    </button>
+                </div>
+            </div>
+            
+            <!-- 2. Timer/Goal Setting View -->
+            <div id="view-timer" class="view hidden w-full h-full flex flex-col justify-center items-center">
+                <div id="timer-state-setup" class="w-full max-w-xl space-y-6">
+                    <p class="text-center text-lg text-gray-600 font-medium">Define Your Micro-Goal</p>
+                    <textarea id="goal-input" placeholder="I will study [Topic/Task] for [X] minutes. e.g., 'Review $K_a$ formula and solve 3 problems.'"
+                        class="w-full p-4 border-4 border-blue-200 rounded-xl focus:border-blue-500 transition resize-none shadow-inner bg-blue-50"></textarea>
+                    
+                    <!-- Start button uses the motivational green color --><button id="btn-start-focus" class="w-full p-4 bg-green-500 text-white font-extrabold text-xl rounded-xl hover:bg-green-600 transition transform hover:scale-[1.01] shadow-xl">
+                        START FOCUS SPRINT (<span id="start-duration-text">10:00</span>)
+                    </button>
+                </div>
+
+                <!-- h-full ensures this running state fills the screen perfectly for full-screen image/color effect --><div id="timer-state-running" class="hidden h-full w-full flex flex-col items-center justify-center text-white transition-all duration-500 p-4">
+                    <div class="relative w-full h-full flex flex-col items-center justify-center z-20">
+                        <p id="timer-phase-label" class="text-2xl font-light mb-4 tracking-wider"></p>
+                        <p id="timer-display" class="font-mono"></p>
+                        <p id="current-goal-display" class="text-center text-xl font-semibold mt-4 max-w-xs sm:max-w-xl"></p>
+                        <button id="btn-stop-timer" class="mt-8 p-3 px-6 bg-red-600/70 backdrop-blur-sm text-white font-medium rounded-full hover:bg-red-500 transition shadow-lg opacity-70 hover:opacity-100">Stop</button>
+                    </div>
+                </div>
+
+                <div id="timer-state-recap" class="hidden w-full max-w-xl space-y-6">
+                    <p class="text-center text-2xl font-extrabold text-gray-800">RECAP & PLAN</p>
+                    <p class="text-center text-lg text-gray-600 font-medium">What did you accomplish? What is the *next* micro-task?</p>
+                    <textarea id="recap-input" placeholder="e.g., 'Finished 2 problems, need to research the $K_b$ concept next. #Chemistry'"
+                        class="w-full p-4 border-4 border-yellow-200 rounded-xl focus:border-yellow-500 transition resize-none shadow-inner bg-yellow-50"></textarea>
+                    <p id="recap-timer-display" class="text-center text-3xl font-mono text-gray-700"></p>
+                    <!-- Finish button uses the yellow/orange color for action/completion --><button id="btn-finish-recap" class="w-full p-4 bg-yellow-500 text-white font-extrabold text-xl rounded-xl hover:bg-yellow-600 transition transform hover:scale-[1.01] shadow-xl">
+                        FINISH SESSION & TAKE BREAK (<span id="break-duration-text">5:00</span>)
+                    </button>
+                    <button id="btn-next-sprint" class="w-full p-2 bg-blue-500 text-white font-medium rounded-xl hover:bg-blue-600 transition mt-2">
+                        Start Next Sprint Immediately
+                    </button>
+                </div>
+            </div>
+
+            <!-- 3. History View --><div id="view-history" class="view hidden w-full">
+                <h2 class="text-3xl font-extrabold text-gray-800 mb-6 border-b pb-2">Study History</h2>
+                <div id="history-stats" class="grid grid-cols-2 gap-4 mb-6">
+                    <div class="p-4 bg-blue-100 rounded-xl shadow-md">
+                        <p class="text-sm font-medium text-blue-800">Total Focus Sprints</p>
+                        <p id="stat-sprints" class="text-2xl font-bold text-blue-900">0</p>
+                    </div>
+                    <div class="p-4 bg-green-100 rounded-xl shadow-md">
+                        <p class="text-sm font-medium text-green-800">Total Focus Time</p>
+                        <p id="stat-time" class="text-2xl font-bold text-green-900">0 min</p>
+                    </div>
+                </div>
+
+                <div id="history-filter" class="mb-4">
+                    <input type="text" id="filter-tag" placeholder="Filter by tag (e.g., #Math)" class="w-full p-3 border rounded-lg focus:ring-blue-500">
+                </div>
+
+                <div id="history-list" class="space-y-4">
+                    <p class="text-gray-500 text-center" id="no-history-message">No sessions logged yet. Time to focus!</p>
+                    <!-- History items will be inserted here --></div>
+            </div>
+
+            <!-- 4. Settings View --><div id="view-settings" class="view hidden w-full max-w-lg mx-auto">
+                <h2 class="text-3xl font-extrabold text-gray-800 mb-6 border-b pb-2">Settings</h2>
+
+                <div class="space-y-6">
+                    <!-- Timer Settings --><div class="bg-gray-50 p-4 rounded-xl shadow-inner">
+                        <h3 class="font-semibold text-lg mb-3">Timer Durations (Minutes)</h3>
+                        <label class="block mb-2">Focus Duration:
+                            <input type="number" id="setting-focus-duration" min="1" max="60" class="w-full p-2 border rounded-lg" value="10">
+                        </label>
+                        <label class="block mb-2">Recap Duration:
+                            <input type="number" id="setting-recap-duration" min="1" max="10" class="w-full p-2 border rounded-lg" value="2">
+                        </label>
+                        <label class="block">Break Duration:
+                            <input type="number" id="setting-break-duration" min="1" max="30" class="w-full p-2 border rounded-lg" value="5">
+                        </label>
+                    </div>
+
+                    <!-- Theme Settings --><div class="bg-gray-50 p-4 rounded-xl shadow-inner">
+                        <h3 class="font-semibold text-lg mb-3">Audio & Theme</h3>
+                        <label class="block mb-2">Chime Volume (0.0 to 1.0):
+                            <input type="range" id="setting-chime-volume" min="0" max="1" step="0.1" class="w-full p-2 border rounded-lg" value="0.5">
+                        </label>
+                        <label class="block mb-4">Background Mode:
+                            <select id="setting-bg-mode" class="w-full p-2 border rounded-lg">
+                                <option value="color">Solid Theme Color</option>
+                                <option value="random">Random Motivating Image</option>
+                            </select>
+                        </label>
+                        <label class="block mb-4">Theme Color (Solid Mode):
+                            <input type="color" id="setting-theme-color" class="w-full h-10 p-1 border rounded-lg" value="#4C51BF">
+                        </label>
+                    </div>
+
+                    <!-- Account/Action Settings --><div class="bg-gray-50 p-4 rounded-xl shadow-inner">
+                        <h3 class="font-semibold text-lg mb-3">Account Actions</h3>
+                        <button id="btn-save-settings" class="w-full p-3 mb-2 bg-indigo-600 text-white font-semibold rounded-lg hover:bg-indigo-700 transition shadow-md">
+                            Save Settings
+                        </button>
+                        <button id="btn-logout" class="w-full p-3 bg-red-500 text-white font-semibold rounded-lg hover:bg-red-600 transition shadow-md">
+                            Logout
+                        </button>
+                    </div>
+                </div>
+
+                <p id="settings-message" class="text-center mt-4 text-sm text-green-600"></p>
+            </div>
+
+            <!-- Global Message Box (for alerts/confirmations) --><div id="message-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+                <div class="bg-white p-6 rounded-xl shadow-2xl max-w-sm w-11/12 space-y-4">
+                    <p id="modal-text" class="text-lg font-medium text-gray-700">Message content.</p>
+                    <div class="flex justify-end space-x-3">
+                        <button id="modal-ok" class="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition">OK</button>
+                        <button id="modal-cancel" class="px-4 py-2 bg-gray-300 text-gray-800 rounded-lg hover:bg-gray-400 transition hidden">Cancel</button>
+                    </div>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <!-- JavaScript Core Logic --><script>
+        const DOM = {
+            appShell: document.getElementById('app-shell'),
+            header: document.getElementById('app-header'),
+            title: document.getElementById('app-title'),
+            navButtons: document.getElementById('nav-buttons'),
+            views: {
+                auth: document.getElementById('view-auth'),
+                timer: document.getElementById('view-timer'),
+                history: document.getElementById('view-history'),
+                settings: document.getElementById('view-settings'),
+            },
+            auth: {
+                username: document.getElementById('auth-username'),
+                password: document.getElementById('auth-password'),
+                // Replaced login/register buttons with tabs and a single continue button
+                tabSignin: document.getElementById('tab-signin'),
+                tabSignup: document.getElementById('tab-signup'),
+                continueButton: document.getElementById('btn-continue'),
+                message: document.getElementById('auth-message'),
+            },
+            timer: {
+                setup: document.getElementById('timer-state-setup'),
+                running: document.getElementById('timer-state-running'),
+                recap: document.getElementById('timer-state-recap'),
+                goalInput: document.getElementById('goal-input'),
+                recapInput: document.getElementById('recap-input'),
+                startButton: document.getElementById('btn-start-focus'),
+                stopButton: document.getElementById('btn-stop-timer'),
+                finishButton: document.getElementById('btn-finish-recap'),
+                nextSprintButton: document.getElementById('btn-next-sprint'),
+                timerDisplay: document.getElementById('timer-display'),
+                recapTimerDisplay: document.getElementById('recap-timer-display'),
+                startDurationText: document.getElementById('start-duration-text'),
+                breakDurationText: document.getElementById('break-duration-text'),
+                phaseLabel: document.getElementById('timer-phase-label'),
+                goalDisplay: document.getElementById('current-goal-display'),
+                bgOverlay: document.getElementById('focus-bg-overlay'),
+                fullScreenButton: null, // Initialized in UIManager
+            },
+            history: {
+                statsSprints: document.getElementById('stat-sprints'),
+                statsTime: document.getElementById('stat-time'),
+                filterTag: document.getElementById('filter-tag'),
+                list: document.getElementById('history-list'),
+                noHistoryMessage: document.getElementById('no-history-message'),
+            },
+            settings: {
+                focusDuration: document.getElementById('setting-focus-duration'),
+                recapDuration: document.getElementById('setting-recap-duration'),
+                breakDuration: document.getElementById('setting-break-duration'),
+                themeColor: document.getElementById('setting-theme-color'),
+                bgMode: document.getElementById('setting-bg-mode'),
+                chimeVolume: document.getElementById('setting-chime-volume'),
+                saveButton: document.getElementById('btn-save-settings'),
+                logoutButton: document.getElementById('btn-logout'),
+                message: document.getElementById('settings-message'),
+            },
+            modal: {
+                modal: document.getElementById('message-modal'),
+                text: document.getElementById('modal-text'),
+                ok: document.getElementById('modal-ok'),
+                cancel: document.getElementById('modal-cancel'),
+            }
+        };
+
+        const DEFAULTS = {
+            FOCUS_DURATION: 10,
+            RECAP_DURATION: 2,
+            BREAK_DURATION: 5,
+            THEME_COLOR: '#4C51BF', // Deep Indigo for focus theme
+            BG_MODE: 'color',
+            CHIME_VOLUME: 0.5,
+        };
+        
+        // Define the gray-slate-blacked color
+        const SLATE_BLACKED = '#121214'; 
+
+        // Utility: High-quality, free-to-use motivational image URLs
+        const MOTIVATIONAL_IMAGES = [
+            'https://picsum.photos/600/1000?random=1&blur=2', 
+            'https://picsum.photos/600/1000?random=2&blur=2', 
+            'https://picsum.photos/600/1000?random=3&grayscale', 
+            'https://picsum.photos/600/1000?random=4&saturation=0.5', 
+            'https://picsum.photos/600/1000?random=5', 
+        ];
+
+        // --- 1. Global Utility Functions ---
+
+        /**
+         * Custom Modal for all messages/alerts (since window.alert/confirm are forbidden).
+         */
+        function showModal(message, isConfirmation = false) {
+            return new Promise(resolve => {
+                DOM.modal.text.textContent = message;
+                DOM.modal.modal.classList.remove('hidden');
+
+                if (isConfirmation) {
+                    DOM.modal.cancel.classList.remove('hidden');
+                    DOM.modal.ok.onclick = () => {
+                        DOM.modal.modal.classList.add('hidden');
+                        resolve(true);
+                    };
+                    DOM.modal.cancel.onclick = () => {
+                        DOM.modal.modal.classList.add('hidden');
+                        resolve(false);
+                    };
+                } else {
+                    DOM.modal.cancel.classList.add('hidden');
+                    DOM.modal.ok.onclick = () => {
+                        DOM.modal.modal.classList.add('hidden');
+                        resolve(true);
+                    };
+                }
+            });
+        }
+
+        /**
+         * Plays a synthesized chime sound to signal the end of a break.
+         */
+        function playBreakOverChime() {
+            // Check for AudioContext support
+            const AudioContext = window.AudioContext || window.webkitAudioContext;
+            if (!AudioContext) return;
+
+            // Use the saved volume setting
+            const volume = parseFloat(AppState.settings.chimeVolume) || DEFAULTS.CHIME_VOLUME;
+            if (volume <= 0) return; // Muted
+
+            const ctx = new AudioContext();
+
+            // Create two oscillator nodes for a pleasant, double-tone chime
+            const oscillator1 = ctx.createOscillator();
+            const oscillator2 = ctx.createOscillator();
+            const gainNode = ctx.createGain();
+
+            oscillator1.type = 'sine';
+            oscillator2.type = 'sine';
+            
+            // Frequencies for a non-jarring tone (G4 and B4)
+            oscillator1.frequency.setValueAtTime(392, ctx.currentTime);
+            oscillator2.frequency.setValueAtTime(494, ctx.currentTime); 
+
+            // Connect nodes
+            oscillator1.connect(gainNode);
+            oscillator2.connect(gainNode);
+            gainNode.connect(ctx.destination);
+
+            // Set a quick fade in/out, incorporating the user volume
+            gainNode.gain.setValueAtTime(0, ctx.currentTime);
+            gainNode.gain.linearRampToValueAtTime(volume, ctx.currentTime + 0.1);
+            gainNode.gain.linearRampToValueAtTime(0, ctx.currentTime + 0.7);
+
+            // Start and stop after sound duration
+            oscillator1.start();
+            oscillator2.start();
+            oscillator1.stop(ctx.currentTime + 0.7);
+            oscillator2.stop(ctx.currentTime + 0.7);
+        }
+        
+        /**
+         * Formats time in seconds into MM:SS string.
+         */
+        function formatTime(seconds) {
+            const minutes = Math.floor(seconds / 60);
+            const remainingSeconds = seconds % 60;
+            const pad = (num) => num.toString().padStart(2, '0');
+            return `${pad(minutes)}:${pad(remainingSeconds)}`;
+        }
+
+        /**
+         * Simple String Hashing (for storing passwords securely in IndexedDB).
+         */
+        function hashString(str) {
+            let hash = 0;
+            for (let i = 0; i < str.length; i++) {
+                const char = str.charCodeAt(i);
+                hash = ((hash << 5) - hash) + char;
+                hash |= 0; // Convert to 32bit integer
+            }
+            return hash.toString(16);
+        }
+
+        // --- 2. IndexedDB Manager (IDB) ---
+
+        class IDBManager {
+            constructor() {
+                this.db = null;
+                this.dbName = 'FocusFuelDB';
+                this.dbVersion = 1;
+            }
+
+            // Initializes the IndexedDB connection
+            init() {
+                return new Promise((resolve, reject) => {
+                    if (this.db) {
+                        return resolve(this.db);
+                    }
+
+                    const request = indexedDB.open(this.dbName, this.dbVersion);
+
+                    request.onerror = (event) => {
+                        console.error('IndexedDB error:', event.target.error);
+                        reject(event.target.error);
+                    };
+
+                    request.onsuccess = (event) => {
+                        this.db = event.target.result;
+                        resolve(this.db);
+                    };
+
+                    // Schema migration/creation
+                    request.onupgradeneeded = (event) => {
+                        this.db = event.target.result;
+                        if (!this.db.objectStoreNames.contains('users')) {
+                            this.db.createObjectStore('users', { keyPath: 'username' });
+                        }
+                        if (!this.db.objectStoreNames.contains('history')) {
+                            const historyStore = this.db.createObjectStore('history', { keyPath: 'id' });
+                            historyStore.createIndex('by_userId', 'userId', { unique: false });
+                            historyStore.createIndex('by_tag', 'tags', { unique: false, multiEntry: true });
+                        }
+                    };
+                });
+            }
+
+            // Generic transaction runner
+            async transaction(storeName, mode, callback) {
+                await this.init();
+                const tx = this.db.transaction(storeName, mode);
+                const store = tx.objectStore(storeName);
+
+                return new Promise((resolve, reject) => {
+                    try {
+                        callback(store, tx).then(resolve).catch(reject);
+                    } catch (e) {
+                        reject(e);
+                    }
+                });
+            }
+
+            // CRUD for Users
+            async saveUser(user) {
+                return this.transaction('users', 'readwrite', (store, tx) => {
+                    return new Promise((resolve, reject) => {
+                        const request = store.put(user);
+                        request.onsuccess = () => resolve(request.result);
+                        request.onerror = () => reject(request.error);
+                    });
+                });
+            }
+
+            async getUser(username) {
+                return this.transaction('users', 'readonly', (store, tx) => {
+                    return new Promise((resolve, reject) => {
+                        const request = store.get(username);
+                        request.onsuccess = () => resolve(request.result);
+                        request.onerror = () => reject(request.error);
+                    });
+                });
+            }
+
+            // CRUD for History
+            async saveHistory(session) {
+                return this.transaction('history', 'readwrite', (store, tx) => {
+                    return new Promise((resolve, reject) => {
+                        const request = store.add(session);
+                        request.onsuccess = () => resolve(request.result);
+                        request.onerror = () => reject(request.error);
+                    });
+                });
+            }
+
+            async getHistory(userId) {
+                return this.transaction('history', 'readonly', (store, tx) => {
+                    return new Promise((resolve, reject) => {
+                        const history = [];
+                        const index = store.index('by_userId');
+                        const request = index.openCursor(IDBKeyRange.only(userId));
+
+                        request.onsuccess = () => {
+                            const cursor = request.result;
+                            if (cursor) {
+                                history.push(cursor.value);
+                                cursor.continue();
+                            } else {
+                                resolve(history.sort((a, b) => b.id - a.id)); // Sort newest first
+                            }
+                        };
+                        request.onerror = () => reject(request.error);
+                    });
+                });
+            }
+        }
+
+        const idbManager = new IDBManager();
+
+        // --- 3. App State and Settings ---
+
+        const AppState = {
+            isLoggedIn: false,
+            currentUser: null,
+            userId: null,
+            isSigningIn: true, // New state for tab control: true = Sign In, false = Sign Up
+            settings: { ...DEFAULTS },
+            history: [],
+        };
+
+        const App = {
+            loadSettings() {
+                const user = AppState.currentUser;
+                if (user && user.settings) {
+                    AppState.settings = { ...DEFAULTS, ...user.settings };
+                } else {
+                    AppState.settings = { ...DEFAULTS };
+                }
+                this.updateSettingsUI();
+                this.applyTheme();
+                this.updateTimerStartText();
+            },
+
+            updateSettingsUI() {
+                DOM.settings.focusDuration.value = AppState.settings.focusDuration;
+                DOM.settings.recapDuration.value = AppState.settings.recapDuration;
+                DOM.settings.breakDuration.value = AppState.settings.breakDuration;
+                // NEW: Load chime volume
+                DOM.settings.chimeVolume.value = AppState.settings.chimeVolume || DEFAULTS.CHIME_VOLUME; 
+                // Theme color setting UI uses the current theme color
+                DOM.settings.themeColor.value = AppState.settings.themeColor;
+                DOM.settings.bgMode.value = AppState.settings.bgMode;
+            },
+
+            updateTimerStartText() {
+                 DOM.timer.startDurationText.textContent = formatTime(AppState.settings.focusDuration * 60);
+                 DOM.timer.breakDurationText.textContent = formatTime(AppState.settings.breakDuration * 60);
+            },
+
+            applyTheme(imageUrl = null) {
+                const color = AppState.settings.themeColor;
+                const mode = AppState.settings.bgMode;
+                const shell = DOM.timer.running;
+                const header = DOM.header;
+                const title = DOM.title;
+
+                // 1. Apply color to header/title/shell for non-running state
+                // When logged in, header background uses theme color, text is white
+                header.style.backgroundColor = color;
+                title.style.color = '#ffffff';
+
+                if (mode === 'color' || !imageUrl) {
+                    // Solid Color Mode
+                    shell.style.backgroundImage = 'none';
+                    shell.style.backgroundColor = color;
+                    DOM.timer.bgOverlay.style.display = 'none';
+                } else {
+                    // Random Image Mode
+                    shell.style.backgroundColor = 'transparent'; // Use background color as a fallback base
+                    shell.style.backgroundImage = `url('${imageUrl}')`;
+                    shell.style.backgroundSize = 'cover';
+                    shell.style.backgroundPosition = 'center';
+                    shell.style.backgroundRepeat = 'no-repeat';
+                    DOM.timer.bgOverlay.style.display = 'block';
+                }
+            },
+
+            async saveSettings() {
+                const settings = {
+                    focusDuration: parseInt(DOM.settings.focusDuration.value) || DEFAULTS.FOCUS_DURATION,
+                    recapDuration: parseInt(DOM.settings.recapDuration.value) || DEFAULTS.RECAP_DURATION,
+                    breakDuration: parseInt(DOM.settings.breakDuration.value) || DEFAULTS.BREAK_DURATION,
+                    chimeVolume: parseFloat(DOM.settings.chimeVolume.value) || DEFAULTS.CHIME_VOLUME, // NEW: Save volume
+                    themeColor: DOM.settings.themeColor.value || DEFAULTS.THEME_COLOR,
+                    bgMode: DOM.settings.bgMode.value || DEFAULTS.BG_MODE,
+                };
+
+                AppState.settings = settings;
+                AppState.currentUser.settings = settings;
+
+                try {
+                    await idbManager.saveUser(AppState.currentUser);
+                    this.loadSettings();
+                    DOM.settings.message.textContent = 'Settings saved successfully!';
+                    setTimeout(() => DOM.settings.message.textContent = '', 3000);
+                } catch (error) {
+                    DOM.settings.message.textContent = 'Error saving settings.';
+                    console.error('Save settings error:', error);
+                }
+            },
+
+            async loadHistory() {
+                if (!AppState.userId) return;
+                try {
+                    AppState.history = await idbManager.getHistory(AppState.userId);
+                    this.renderHistory();
+                } catch (error) {
+                    showModal('Error loading history data.');
+                    console.error('History load error:', error);
+                }
+            },
+
+            renderHistory(filterTag = '') {
+                const list = DOM.history.list;
+                list.innerHTML = '';
+                let totalTime = 0;
+                let sprintCount = 0;
+
+                const filteredHistory = AppState.history.filter(session => {
+                    if (!filterTag) return true;
+                    // Check if filterTag is present in the recap text (where tags are expected)
+                    return session.recap && session.recap.toLowerCase().includes(filterTag.toLowerCase());
+                });
+
+                if (filteredHistory.length === 0) {
+                    DOM.history.noHistoryMessage.classList.remove('hidden');
+                    return;
+                }
+                DOM.history.noHistoryMessage.classList.add('hidden');
+
+                filteredHistory.forEach(session => {
+                    sprintCount++;
+                    totalTime += session.duration; // duration is in minutes
+
+                    const date = new Date(session.id).toLocaleString();
+                    const item = document.createElement('div');
+                    item.className = 'p-4 bg-white border-2 border-gray-100 rounded-xl shadow-lg hover:shadow-xl transition';
+                    item.innerHTML = `
+                        <p class="text-xs text-gray-500">${date} - ${session.duration} minutes total</p>
+                        <p class="font-bold text-gray-800 mt-1">${session.goal.substring(0, 70)}...</p>
+                        <div class="mt-2 pt-2 border-t border-gray-100">
+                            <p class="text-sm text-gray-600 italic">Accomplished: ${session.recap.substring(0, 100)}...</p>
+                        </div>
+                    `;
+                    list.appendChild(item);
+                });
+
+                DOM.history.statsSprints.textContent = sprintCount;
+                DOM.history.statsTime.textContent = `${Math.round(totalTime)} min (${(totalTime / 60).toFixed(1)} hrs)`;
+            },
+
+            // PWA Registration (requires HTTPS context, but we provide the structure)
+            registerPWA() {
+                if ('serviceWorker' in navigator) {
+                    window.addEventListener('load', () => {
+                        // Dummy service worker to ensure PWA structure is present
+                        const serviceWorkerCode = `
+                            self.addEventListener('install', (e) => {
+                                console.log('[Service Worker] Install');
+                            });
+                            self.addEventListener('fetch', (e) => {
+                                // Simple cache strategy here if running on HTTPS
+                            });
+                        `;
+
+                        const blob = new Blob([serviceWorkerCode], { type: 'application/javascript' });
+                        const workerUrl = URL.createObjectURL(blob);
+
+                        navigator.serviceWorker.register(workerUrl, { scope: './' })
+                            .then(registration => {
+                                console.log('Service Worker registered successfully:', registration);
+                            })
+                            .catch(error => {
+                                console.warn('Service Worker registration failed. (PWA needs HTTPS for full functionality):', error);
+                            });
+                    });
+                }
+            }
+        };
+        
+        // --- Tab Management Logic ---
+        function setAuthMode(isSignin) {
+            AppState.isSigningIn = isSignin;
+            DOM.auth.tabSignin.classList.toggle('active', isSignin);
+            DOM.auth.tabSignup.classList.toggle('active', !isSignin);
+            
+            // Update button text based on tab, although the mockup uses 'Continue' for both.
+            // Keeping it simple as 'Continue' for aesthetic consistency with the mockup.
+            // DOM.auth.continueButton.textContent = isSignin ? 'Login' : 'Register'; 
+            
+            DOM.auth.message.textContent = ''; // Clear message on tab switch
+        }
+
+        // --- 4. Authentication Manager ---
+
+        const AuthManager = {
+            async handleContinue() {
+                if (AppState.isSigningIn) {
+                    await this.login();
+                } else {
+                    await this.register();
+                }
+            },
+            
+            async login() {
+                const username = DOM.auth.username.value.trim();
+                const password = DOM.auth.password.value;
+
+                if (!username || !password) {
+                    DOM.auth.message.textContent = 'Username and password are required.';
+                    return;
+                }
+
+                try {
+                    const user = await idbManager.getUser(username);
+                    if (user && user.passwordHash === hashString(password)) {
+                        AppState.isLoggedIn = true;
+                        AppState.currentUser = user;
+                        AppState.userId = user.username;
+                        
+                        // --- Persistence: Store username on successful login ---
+                        localStorage.setItem('focusFuelLastUser', user.username);
+                        
+                        App.loadSettings();
+                        showModal(`Welcome back, ${username}!`);
+                        UIManager.showView('timer');
+                    } else {
+                        DOM.auth.message.textContent = 'Invalid username or password.';
+                    }
+                } catch (error) {
+                    DOM.auth.message.textContent = 'An error occurred during login.';
+                    console.error('Login error:', error);
+                }
+            },
+
+            async register() {
+                const username = DOM.auth.username.value.trim();
+                const password = DOM.auth.password.value;
+
+                if (!username || password.length < 4) {
+                    DOM.auth.message.textContent = 'Username must not be empty, and password must be at least 4 characters.';
+                    return;
+                }
+
+                try {
+                    const existingUser = await idbManager.getUser(username);
+                    if (existingUser) {
+                        DOM.auth.message.textContent = 'Username already exists. Please log in.';
+                        return;
+                    }
+
+                    const newUser = {
+                        username: username,
+                        passwordHash: hashString(password),
+                        settings: { ...DEFAULTS }, // Set default settings
+                    };
+
+                    await idbManager.saveUser(newUser);
+
+                    AppState.isLoggedIn = true;
+                    AppState.currentUser = newUser;
+                    AppState.userId = newUser.username;
+                    
+                    // --- Persistence: Store username on successful registration ---
+                    localStorage.setItem('focusFuelLastUser', newUser.username);
+
+                    App.loadSettings();
+                    showModal(`Account created for ${username}! Starting your first session.`);
+                    UIManager.showView('timer');
+
+                } catch (error) {
+                    DOM.auth.message.textContent = 'An error occurred during registration.';
+                    console.error('Register error:', error);
+                }
+            },
+
+            logout() {
+                AppState.isLoggedIn = false;
+                AppState.currentUser = null;
+                AppState.userId = null;
+                // --- Persistence: Clear stored username on logout ---
+                localStorage.removeItem('focusFuelLastUser');
+                
+                DOM.auth.username.value = '';
+                DOM.auth.password.value = '';
+                UIManager.showView('auth');
+            }
+        };
+
+        // --- 5. Session Hydration ---
+
+        async function hydrateSession() {
+            const lastUser = localStorage.getItem('focusFuelLastUser');
+            if (!lastUser) {
+                // No previous user saved, show login screen
+                UIManager.showView('auth');
+                return;
+            }
+
+            try {
+                // Attempt to retrieve user data from IndexedDB
+                const user = await idbManager.getUser(lastUser);
+
+                if (user) {
+                    // Session restored!
+                    AppState.isLoggedIn = true;
+                    AppState.currentUser = user;
+                    AppState.userId = user.username;
+                    App.loadSettings();
+                    UIManager.showView('timer');
+                } else {
+                    // User data not found in DB (e.g., cleared IndexedDB but not localStorage)
+                    localStorage.removeItem('focusFuelLastUser');
+                    UIManager.showView('auth');
+                }
+            } catch (error) {
+                console.error("Session hydration failed:", error);
+                localStorage.removeItem('focusFuelLastUser');
+                UIManager.showView('auth');
+            }
+        }
+
+
+        // --- 6. Timer Manager ---
+
+        const TimerManager = {
+            intervalId: null,
+            state: 'setup', // setup, focus, recap, break
+            secondsLeft: 0,
+            currentGoal: '',
+            startTime: null,
+            currentImageUrl: null,
+
+            startFocus() {
+                const goal = DOM.timer.goalInput.value.trim();
+                if (!goal) {
+                    showModal('Please set a micro-goal before starting.');
+                    return;
+                }
+
+                this.currentGoal = goal;
+                this.startTime = Date.now();
+                this.setState('focus');
+                
+                // --- NEW FEATURE: Automated Actions ---
+                toggleFullscreen(); // Attempt to maximize screen
+                DOM.timer.stopButton.style.display = 'none'; // Hide stop button initially, reveal after a delay
+                setTimeout(() => { 
+                    DOM.timer.stopButton.style.display = 'block'; 
+                }, 5000); // Wait 5 seconds before allowing stop button
+                document.getElementById('notification-reminder').classList.remove('hidden');
+                setTimeout(() => {
+                    document.getElementById('notification-reminder').classList.add('hidden');
+                }, 6000);
+            },
+
+            startRecap(isNextSprint = false) {
+                const recapText = DOM.timer.recapInput.value.trim();
+
+                if (!isNextSprint) {
+                    // Save history of the previous sprint
+                    this.saveSession(recapText);
+                } else {
+                    // Only start new sprint if there's a next task planned
+                    const nextGoal = recapText;
+                    if (!nextGoal) {
+                        showModal('Please define the next micro-task before starting a new sprint.');
+                        return;
+                    }
+                    DOM.timer.goalInput.value = nextGoal;
+                    DOM.timer.recapInput.value = ''; // Clear recap input
+                    this.startFocus(); // Automatically starts the next focus sprint
+                    return;
+                }
+
+                this.setState('break');
+            },
+
+            async saveSession(recapText) {
+                const totalDuration = (Date.now() - this.startTime) / (1000 * 60); // Total duration in minutes
+                const tags = recapText.match(/#(\w+)/g) || [];
+
+                const session = {
+                    id: this.startTime,
+                    userId: AppState.userId,
+                    date: new Date(this.startTime).toISOString(),
+                    goal: this.currentGoal,
+                    recap: recapText,
+                    duration: parseFloat(totalDuration.toFixed(2)),
+                    focusDuration: AppState.settings.focusDuration,
+                    tags: tags,
+                };
+
+                try {
+                    await idbManager.saveHistory(session);
+                    // No need to show success, just clear
+                    DOM.timer.goalInput.value = '';
+                    DOM.timer.recapInput.value = '';
+                } catch (error) {
+                    showModal('Error saving session history.');
+                    console.error('Save session error:', error);
+                }
+            },
+
+            setState(newState) {
+                this.state = newState;
+                clearInterval(this.intervalId);
+
+                // --- UI SETUP ---
+                DOM.timer.setup.classList.add('hidden');
+                DOM.timer.running.classList.add('hidden');
+                DOM.timer.recap.classList.add('hidden');
+                DOM.timer.running.classList.remove('bg-gray-700'); // Clean up theme
+                DOM.timer.stopButton.style.display = 'block'; // Reset stop button visibility
+
+                if (newState === 'focus') {
+                    this.secondsLeft = AppState.settings.focusDuration * 60;
+                    DOM.timer.running.classList.remove('hidden');
+                    DOM.timer.phaseLabel.textContent = 'FOCUS SPRINT';
+                    DOM.timer.goalDisplay.textContent = this.currentGoal;
+
+                    // Set dynamic background
+                    this.currentImageUrl = AppState.settings.bgMode === 'random' ? MOTIVATIONAL_IMAGES[Math.floor(Math.random() * MOTIVATIONAL_IMAGES.length)] : null;
+                    App.applyTheme(this.currentImageUrl);
+                } else if (newState === 'recap') {
+                    this.secondsLeft = AppState.settings.recapDuration * 60;
+                    DOM.timer.recap.classList.remove('hidden');
+                    DOM.timer.recapTimerDisplay.textContent = formatTime(this.secondsLeft);
+                    // Pre-populate recap with goal for easier next task planning
+                    DOM.timer.recapInput.value = `Finished goal: ${this.currentGoal}. Next task: `;
+                } else if (newState === 'break') {
+                    this.secondsLeft = AppState.settings.breakDuration * 60;
+                    DOM.timer.running.classList.remove('hidden');
+                    DOM.timer.running.style.backgroundColor = 'rgb(107 114 128)'; // Gray for break
+                    DOM.timer.running.style.backgroundImage = 'none';
+                    DOM.timer.bgOverlay.style.display = 'none';
+                    DOM.timer.phaseLabel.textContent = 'BREAK TIME';
+                    DOM.timer.goalDisplay.textContent = 'Time to relax or prepare for the next sprint.';
+                } else { // setup state
+                    this.secondsLeft = 0;
+                    this.startTime = null;
+                    DOM.timer.setup.classList.remove('hidden');
+                    // Special case: If logging out, we reset header color manually to default (gray background/black text)
+                    DOM.header.style.backgroundColor = 'rgb(249 250 251)'; /* Tailwind bg-gray-50 */
+                    DOM.title.style.color = 'rgb(17 24 39)'; /* Tailwind text-gray-900 */
+                    return;
+                }
+
+                // Start the countdown
+                this.intervalId = setInterval(this.tick.bind(this), 1000);
+            },
+
+            tick() {
+                if (this.secondsLeft <= 0) {
+                    clearInterval(this.intervalId);
+                    this.handleTimerEnd();
+                    return;
+                }
+
+                this.secondsLeft--;
+                if (this.state === 'focus' || this.state === 'break') {
+                    DOM.timer.timerDisplay.textContent = formatTime(this.secondsLeft);
+                } else if (this.state === 'recap') {
+                    DOM.timer.recapTimerDisplay.textContent = formatTime(this.secondsLeft);
+                }
+            },
+
+            handleTimerEnd() {
+                // Play a simple sound (cannot use external URLs, simulate with a short vibration/visual flash)
+                if ('vibrate' in navigator) navigator.vibrate([200, 100, 200]);
+
+                if (this.state === 'focus') {
+                    this.setState('recap');
+                } else if (this.state === 'recap') {
+                    this.startRecap(false); // Moves to break, saving the session
+                } else if (this.state === 'break') {
+                    // --- NEW FEATURE: Play break over audio ---
+                    playBreakOverChime();
+                    showModal('Break over! Ready for your next micro-goal?');
+                    this.setState('setup');
+                }
+            },
+
+            stopTimer(force = false) {
+                if (this.state === 'focus' && !force) {
+                    showModal('Warning: Stopping now will NOT save the session. Continue?', true).then(confirmed => {
+                        if (confirmed) {
+                            clearInterval(this.intervalId);
+                            this.setState('setup');
+                        }
+                    });
+                } else {
+                    clearInterval(this.intervalId);
+                    this.setState('setup');
+                }
+            }
+        };
+
+        // --- 7. UI/View Manager ---
+
+        const UIManager = {
+            showView(viewName) {
+                const logoIcon = document.getElementById('logo-icon');
+                
+                Object.values(DOM.views).forEach(view => view.classList.add('hidden'));
+                DOM.views[viewName].classList.remove('hidden');
+
+                this.updateNavButtons(viewName);
+                this.updateFullscreenButton(viewName);
+
+                if (viewName === 'history') {
+                    App.loadHistory();
+                }
+
+                if (viewName === 'timer' && TimerManager.state === 'setup') {
+                    App.loadSettings(); // Ensure durations are fresh
+                }
+                
+                // === HEADER VISUAL LOGIC ===
+                if (viewName === 'auth') {
+                    // State: LOGGED OUT - White Header, Black Logo, Black Title Text
+                    DOM.header.style.backgroundColor = 'rgb(255, 255, 255)'; /* White header */
+                    
+                    // Logo Color: Black (for contrast against white header)
+                    logoIcon.setAttribute('fill', '#000000');
+                    
+                    // Title Text: Black and Visible
+                    DOM.title.style.color = '#000000';
+                    DOM.title.classList.remove('hidden');
+                } else {
+                    // State: LOGGED IN - Dark Slate Header, WHITE Logo, Title Text HIDDEN
+                    
+                    // 1. Header Background: Grey-Slate-Blacked (#1E293B)
+                    DOM.header.style.backgroundColor = SLATE_BLACKED; 
+                    
+                    // 2. Logo Color: White (for contrast against dark header)
+                    logoIcon.setAttribute('fill', '#ffffff'); 
+                    
+                    // 3. Title Text: Hidden (Only Logo remains)
+                    DOM.title.classList.add('hidden');
+                    
+                    // Apply theme to the main timer area
+                    App.applyTheme(); 
+                }
+                // === END HEADER VISUAL LOGIC ===
+            },
+
+            updateNavButtons(activeView) {
+                // Hides navigation buttons when on the authentication screen
+                if (activeView === 'auth') {
+                    DOM.navButtons.innerHTML = '';
+                    return;
+                }
+                
+                // Clear existing buttons
+                DOM.navButtons.innerHTML = '';
+                
+                const buttonConfig = [
+                    // --- UPDATED to Material Symbols ---
+                    { name: 'Timer', view: 'timer', icon: 'timer' },
+                    { name: 'History', view: 'history', icon: 'history' },
+                    { name: 'Settings', view: 'settings', icon: 'settings' },
+                ];
+
+                buttonConfig.forEach(config => {
+                    const button = document.createElement('button');
+                    button.innerHTML = `<span class="material-symbols-outlined">${config.icon}</span> ${config.name}`;
+                    button.className = 'px-3 py-2 text-sm font-semibold rounded-lg transition-colors duration-200 flex items-center space-x-1';
+
+                    if (config.view === activeView) {
+                        button.classList.add('bg-white', 'text-gray-800', 'shadow-md');
+                        button.classList.remove('text-white', 'hover:bg-gray-200');
+                    } else {
+                        button.classList.add('text-white', 'hover:bg-blue-700', 'opacity-75');
+                        button.style.backgroundColor = AppState.settings.themeColor;
+                        button.onclick = () => UIManager.showView(config.view);
+                    }
+                    DOM.navButtons.appendChild(button);
+                });
+            },
+            
+            updateFullscreenButton(activeView) {
+                const isDesktopOrTablet = window.innerWidth >= 640; 
+                const supportsFullscreen = document.fullscreenEnabled || document.webkitFullscreenEnabled || document.mozFullScreenEnabled || document.msFullscreenEnabled;
+
+                // --- HIDE button if screen is too small (< 640px) ---
+                if (window.innerWidth < 640) {
+                     if (DOM.timer.fullScreenButton) DOM.timer.fullScreenButton.classList.add('hidden');
+                     return;
+                }
+                
+                // Hide button if: 1. Not supported, or 2. On auth screen
+                if (!supportsFullscreen || activeView === 'auth') {
+                    if (DOM.timer.fullScreenButton) DOM.timer.fullScreenButton.classList.add('hidden');
+                    return;
+                }
+
+                if (!DOM.timer.fullScreenButton) {
+                    // Create button only once if it's a supportive, logged-in view
+                    const button = document.createElement('button');
+                    // Initial icon (Maximize)
+                    button.innerHTML = '<span class="material-symbols-outlined">fullscreen</span>'; 
+                    button.id = 'btn-fullscreen';
+                    button.className = 'p-2 text-white text-xl font-bold rounded-lg hover:bg-white/20 transition-colors ml-2';
+                    button.onclick = toggleFullscreen;
+                    DOM.header.appendChild(button);
+                    DOM.timer.fullScreenButton = button;
+                }
+                
+                // Show button only on the Timer view
+                if (activeView === 'timer') {
+                    DOM.timer.fullScreenButton.classList.remove('hidden');
+                    // Sync icon based on current state
+                    updateFullscreenIcon();
+                } else {
+                    DOM.timer.fullScreenButton.classList.add('hidden');
+                }
+            }
+        };
+
+        // --- 9. Fullscreen Implementation (Combined Maximize/Minimize) ---
+        
+        function updateFullscreenIcon() {
+            const button = DOM.timer.fullScreenButton;
+            if (!button) return;
+
+            const isFullscreen = document.fullscreenElement || document.mozFullScreenElement || document.webkitFullscreenElement || document.msFullscreenElement;
+
+            // Use Minimize icon (fullscreen_exit) if already in full screen
+            const iconName = isFullscreen ? 'fullscreen_exit' : 'fullscreen';
+            button.innerHTML = `<span class="material-symbols-outlined">${iconName}</span>`;
+            button.style.color = 'white'; // White against dark header
+        }
+
+        function toggleFullscreen() {
+            const element = DOM.appShell;
+
+            if (document.fullscreenElement || document.mozFullScreenElement || document.webkitFullscreenElement || document.msFullscreenElement) {
+                // Exit fullscreen
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                } else if (document.mozCancelFullScreen) {
+                    document.mozCancelFullScreen();
+                } else if (document.webkitExitFullscreen) {
+                    document.webkitExitFullscreen();
+                } else if (document.msExitFullscreen) {
+                    document.msExitFullscreen();
+                }
+            } else {
+                // Enter fullscreen
+                if (element.requestFullscreen) {
+                    element.requestFullscreen();
+                } else if (element.mozRequestFullScreen) {
+                    element.mozRequestFullScreen();
+                } else if (element.webkitRequestFullscreen) {
+                    element.webkitRequestFullscreen();
+                } else if (element.msRequestFullscreen) {
+                    element.msRequestFullscreen();
+                }
+            }
+        }
+        
+        // Listen for native changes (like ESC key press) to update the icon
+        document.addEventListener('fullscreenchange', updateFullscreenIcon);
+        document.addEventListener('webkitfullscreenchange', updateFullscreenIcon);
+        document.addEventListener('mozfullscreenchange', updateFullscreenIcon);
+        document.addEventListener('MSFullscreenChange', updateFullscreenIcon);
+
+
+        // --- 10. Event Listeners and Initialization ---
+
+        function init() {
+            // PWA Registration
+            App.registerPWA();
+
+            // Bind Auth Actions
+            DOM.auth.continueButton.onclick = AuthManager.handleContinue.bind(AuthManager);
+            
+            // Tab switch handling
+            DOM.auth.tabSignin.onclick = () => setAuthMode(true);
+            DOM.auth.tabSignup.onclick = () => setAuthMode(false);
+            
+            // Set initial state
+            setAuthMode(true);
+
+            // Bind Timer Actions
+            DOM.timer.startButton.onclick = () => TimerManager.startFocus();
+            DOM.timer.stopButton.onclick = () => TimerManager.stopTimer();
+            DOM.timer.finishButton.onclick = () => TimerManager.startRecap(false);
+            DOM.timer.nextSprintButton.onclick = () => TimerManager.startRecap(true);
+
+            // Bind Settings Actions
+            DOM.settings.saveButton.onclick = () => App.saveSettings();
+            DOM.settings.logoutButton.onclick = AuthManager.logout;
+
+            // Bind History Filter
+            DOM.history.filterTag.oninput = (e) => App.renderHistory(e.target.value.trim());
+
+            // Check for persistent session before showing any view
+            hydrateSession();
+        }
+
+        window.onload = init;
+    </script>
+</body>
+</html>
